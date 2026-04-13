@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="모놀리식·다계열 연동 환경에서 프로그램 영향도를 자연어로 탐색하는 데모" />
+    <title>프로그램 영향도 지능형 탐색 데모</title>
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./manual-qa.css" />
+    <link rel="stylesheet" href="./impact-qa.css" />
+  </head>
+  <body class="qa-body imp-body">
+    <a class="skip-link" href="#impMain">본문으로 건너뛰기</a>
+
+    <header class="qa-header imp-header">
+      <div class="qa-header-inner">
+        <nav class="app-topnav" aria-label="사이트 전체">
+          <a href="./index.html" class="app-topnav-link">홈</a>
+          <a href="./rag-proposal.html" class="app-topnav-link">제안서</a>
+          <a href="./manual-qa.html" class="app-topnav-link">매뉴얼 Q&amp;A</a>
+          <a href="./impact-qa.html" class="app-topnav-link" aria-current="page">영향도 탐색</a>
+        </nav>
+        <div class="qa-brand">
+          <p class="qa-badge">2번 과제 데모</p>
+          <h1 class="qa-title">프로그램 <span class="qa-accent">영향도 탐색</span></h1>
+          <p class="qa-lead">
+            설계서·연동 명세·장애 리포트 등을 청크로 색인한 뒤, <strong>형식 없는 질문</strong>으로 관련 시스템·모듈·검증 포인트를 묶어 제시합니다.
+            실제 도입 시에는 코드 의존성 그래프·배포 이력·APM 로그까지 같은 질의창으로 연결할 수 있습니다.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main id="impMain" class="qa-main">
+      <div class="qa-layout">
+        <aside class="qa-aside" aria-label="검색 조건">
+          <h2 class="qa-aside-title">범위 필터</h2>
+          <p class="qa-aside-hint">변경 지점이 있는 시스템을 좁히면, 교차 영향 후보가 줄어듭니다.</p>
+          <label class="qa-label" for="impSystem">기준 시스템</label>
+          <select id="impSystem" class="qa-select">
+            <option value="전체">전체</option>
+            <option value="원장">원장</option>
+            <option value="채널">채널(모바일·인터넷)</option>
+            <option value="결제">결제·카드</option>
+            <option value="배치">배치·정산</option>
+            <option value="통지">통지·알림</option>
+            <option value="공통">공통(인증·게이트웨이)</option>
+          </select>
+          <label class="qa-label" for="impRisk">리스크 관점</label>
+          <select id="impRisk" class="qa-select">
+            <option value="전체">전체</option>
+            <option value="스키마">DB 스키마·마이그레이션</option>
+            <option value="API">대외·내부 API</option>
+            <option value="배치">야간 배치·파일 연동</option>
+          </select>
+          <p class="qa-aside-foot">샘플 청크: <strong>10</strong>건 · 모놀리식 공유 DB 가정</p>
+        </aside>
+
+        <section class="qa-panel" aria-labelledby="impPanelTitle">
+          <h2 id="impPanelTitle" class="visually-hidden">영향도 질의</h2>
+
+          <form id="impForm" class="qa-form">
+            <label class="visually-hidden" for="impInput">질문 입력</label>
+            <textarea
+              id="impInput"
+              class="qa-input"
+              name="q"
+              rows="3"
+              placeholder="예: 원장 계좌번호 마스킹 규칙을 바꾸면 어디까지 점검해야 하나요? / 약관 동의 API 필드 추가 시 채널 영향은?"
+              required
+            ></textarea>
+            <div class="qa-form-actions">
+              <button type="submit" class="btn qa-submit">검색 후 영향도 요약</button>
+            </div>
+          </form>
+
+          <div id="impEmpty" class="qa-empty">
+            <p>변경하려는 기능·테이블·API를 <strong>자연어</strong>로 적으면, 색인된 설계·연동 설명에서 교차 영향 단서를 모읍니다.</p>
+            <ul class="qa-samples">
+              <li>
+                <button type="button" class="qa-sample imp-sample" data-q="원장에서 고객 계좌 마스킹 규칙을 완화하면 어떤 시스템을 다시 테스트해야 하나요?">
+                  계좌 마스킹 규칙 완화
+                </button>
+              </li>
+              <li>
+                <button type="button" class="qa-sample imp-sample" data-q="약관 동의 이력 테이블에 컬럼을 추가하면 배치나 통지에 문제가 생기나요?">
+                  약관 테이블 컬럼 추가
+                </button>
+              </li>
+              <li>
+                <button type="button" class="qa-sample imp-sample" data-q="결제 취소 API 타임아웃을 늘리면 원장 락이나 채널 타임아웃과 충돌하나요?">
+                  결제 API 타임아웃 변경
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div id="impGraph" class="imp-graph" hidden aria-live="polite"></div>
+
+          <div class="qa-out">
+            <div class="qa-out-block">
+              <h3 class="qa-out-title">영향도 요약</h3>
+              <div id="impAnswer" class="qa-answer" aria-live="polite"></div>
+            </div>
+            <div id="impFeedback" class="qa-feedback" hidden>
+              <span class="fb-label">이 분석이 탐색에 도움이 되었나요?</span>
+              <button type="button" id="impThumbUp" class="fb-btn" aria-label="도움됨">👍</button>
+              <button type="button" id="impThumbDown" class="fb-btn" aria-label="도움 안 됨">👎</button>
+              <span class="fb-note imp-fb-note" aria-live="polite"></span>
+            </div>
+            <div class="qa-out-block">
+              <h3 class="qa-out-title">근거 문서(청크)</h3>
+              <div id="impSources" class="qa-sources"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="qa-page-footer">
+      <p>
+        데모는 텍스트 기반 지식만 사용합니다. 실무에서는 정적 분석·런타임 트레이스·장애 DB를 같은 RAG 파이프라인에 태워
+        “놓치기 쉬운” 간접 연결까지 보강합니다.
+      </p>
+    </footer>
+
+    <script src="./impact-qa.js"></script>
+  </body>
+</html>

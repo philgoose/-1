@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="업무 매뉴얼·도움말 RAG 스타일 Q&A 데모 — 검색·인용·권한 필터" />
+    <title>매뉴얼·도움말 지능형 Q&amp;A 데모</title>
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./manual-qa.css" />
+  </head>
+  <body class="qa-body">
+    <a class="skip-link" href="#qaMain">본문으로 건너뛰기</a>
+
+    <header class="qa-header">
+      <div class="qa-header-inner">
+        <nav class="app-topnav" aria-label="사이트 전체">
+          <a href="./index.html" class="app-topnav-link">홈</a>
+          <a href="./rag-proposal.html" class="app-topnav-link">제안서</a>
+          <a href="./manual-qa.html" class="app-topnav-link" aria-current="page">매뉴얼 Q&amp;A</a>
+          <a href="./impact-qa.html" class="app-topnav-link">영향도 탐색</a>
+        </nav>
+        <div class="qa-brand">
+          <p class="qa-badge">1번 과제 데모</p>
+          <h1 class="qa-title">매뉴얼·도움말 <span class="qa-accent">지능형 Q&amp;A</span></h1>
+          <p class="qa-lead">
+            문서를 청크로 색인한 뒤 질의와 관련된 구간만 찾아 <strong>출처와 함께</strong> 안내합니다.
+            본 페이지는 브라우저만으로 동작하는 <strong>목업</strong>이며, 실제 도입 시 임베딩 검색·LLM 생성·권한 서버와 연동합니다.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main id="qaMain" class="qa-main">
+      <div class="qa-layout">
+        <aside class="qa-aside" aria-label="검색 조건">
+          <h2 class="qa-aside-title">메타데이터 필터</h2>
+          <p class="qa-aside-hint">실무에서는 부서·직급·제품·버전으로 검색 대상을 제한합니다.</p>
+          <label class="qa-label" for="filterProduct">제품</label>
+          <select id="filterProduct" class="qa-select">
+            <option value="전체">전체</option>
+            <option value="이글프로">이글프로</option>
+            <option value="공통">공통(업무편람)</option>
+          </select>
+          <label class="qa-label" for="filterDept">열람 권한(데모)</label>
+          <select id="filterDept" class="qa-select">
+            <option value="전체">전체</option>
+            <option value="개발">개발 부서만</option>
+          </select>
+          <p class="qa-aside-foot">샘플 청크: <strong>8</strong>건 · 버전 필드 포함</p>
+        </aside>
+
+        <section class="qa-panel" aria-labelledby="qaPanelTitle">
+          <h2 id="qaPanelTitle" class="visually-hidden">질의 응답</h2>
+
+          <form id="qaForm" class="qa-form">
+            <label class="visually-hidden" for="qaInput">질문 입력</label>
+            <textarea
+              id="qaInput"
+              class="qa-input"
+              name="q"
+              rows="3"
+              placeholder="예: 재택근무 때 보안 A 자료는 어떻게 되나요? / 이글프로 백업 파일 확장자는? / API 호출 한도는?"
+              required
+            ></textarea>
+            <div class="qa-form-actions">
+              <button type="submit" class="btn qa-submit">검색 후 답변 생성</button>
+            </div>
+          </form>
+
+          <div id="qaEmpty" class="qa-empty">
+            <p>위에 질문을 입력하면 <strong>관련 청크</strong>를 찾고, 인용 가능한 형태로 요약합니다.</p>
+            <ul class="qa-samples">
+              <li><button type="button" class="qa-sample" data-q="재택근무할 때 보안 등급 A 자료는 볼 수 있나요?">재택 + 보안 A 자료</button></li>
+              <li><button type="button" class="qa-sample" data-q="이글프로에서 프로젝트 백업은 어떻게 하나요?">이글프로 백업 방법</button></li>
+              <li><button type="button" class="qa-sample" data-q="EG-2048 오류가 뜨면 어떻게 해야 하나요?">오류 EG-2048</button></li>
+            </ul>
+          </div>
+
+          <div class="qa-out">
+            <div class="qa-out-block">
+              <h3 class="qa-out-title">근거 있는 안내</h3>
+              <div id="qaAnswer" class="qa-answer" aria-live="polite"></div>
+            </div>
+            <div id="qaFeedback" class="qa-feedback" hidden>
+              <span class="fb-label">이 결과가 도움이 되었나요?</span>
+              <button type="button" id="qaThumbUp" class="fb-btn" aria-label="도움됨">👍</button>
+              <button type="button" id="qaThumbDown" class="fb-btn" aria-label="도움 안 됨">👎</button>
+              <span class="fb-note" aria-live="polite"></span>
+            </div>
+            <div class="qa-out-block">
+              <h3 class="qa-out-title">검색된 출처(청크)</h3>
+              <div id="qaSources" class="qa-sources"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="qa-page-footer">
+      <p>데모 검색 엔진: TF-IDF 근사 · 실서비스에서는 벡터 DB + LLM으로 동일 UX를 확장할 수 있습니다.</p>
+    </footer>
+
+    <script src="./manual-qa.js"></script>
+  </body>
+</html>
